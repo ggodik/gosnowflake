@@ -14,12 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !noasm
 // +build !noasm
 
 package memory
 
 import (
-	"github.com/apache/arrow/go/arrow/internal/cpu"
+	"github.com/apache/arrow/go/v11/arrow/internal/cpu"
 )
 
 func init() {

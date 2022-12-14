@@ -17,9 +17,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apache/arrow/go/arrow/array"
-	"github.com/apache/arrow/go/arrow/ipc"
-	"github.com/apache/arrow/go/arrow/memory"
+	"github.com/apache/arrow/go/v11/arrow"
+	"github.com/apache/arrow/go/v11/arrow/ipc"
+	"github.com/apache/arrow/go/v11/arrow/memory"
 )
 
 type chunkDownloader interface {
@@ -698,7 +698,7 @@ func copyChunkStream(body io.Reader, rows chan<- []*string) error {
 
 // ArrowBatch object represents a chunk of data, or subset of rows, retrievable in array.Record format
 type ArrowBatch struct {
-	rec                *[]array.Record
+	rec                *[]arrow.Record
 	idx                int
 	rowCount           int
 	scd                *snowflakeChunkDownloader
@@ -706,7 +706,7 @@ type ArrowBatch struct {
 }
 
 // Fetch returns an array of records representing a chunk in the query
-func (rb *ArrowBatch) Fetch() (*[]array.Record, error) {
+func (rb *ArrowBatch) Fetch() (*[]arrow.Record, error) {
 	// chunk has already been downloaded
 	if rb.rec != nil {
 		// updating metadata
@@ -733,7 +733,7 @@ func usesArrowBatches(ctx context.Context) bool {
 	return a && ok
 }
 
-func countArrowBatchRows(recs *[]array.Record) int {
+func countArrowBatchRows(recs *[]arrow.Record) int {
 	var cnt int
 	for _, r := range *recs {
 		cnt += int(r.NumRows())

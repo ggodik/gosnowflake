@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apache/arrow/go/arrow"
-	"github.com/apache/arrow/go/arrow/array"
-	"github.com/apache/arrow/go/arrow/decimal128"
-	"github.com/apache/arrow/go/arrow/memory"
+	"github.com/apache/arrow/go/v11/arrow"
+	"github.com/apache/arrow/go/v11/arrow/array"
+	"github.com/apache/arrow/go/v11/arrow/decimal128"
+	"github.com/apache/arrow/go/v11/arrow/memory"
 )
 
 const format = "2006-01-02 15:04:05.999999999"
@@ -306,7 +306,7 @@ func decimalToBigFloat(num decimal128.Num, scale int64) *big.Float {
 func arrowToValue(
 	destcol *[]snowflakeValue,
 	srcColumnMeta execResponseRowType,
-	srcValue array.Interface,
+	srcValue arrow.Array,
 	loc *time.Location,
 	higherPrecision bool) error {
 	data := srcValue.Data()
@@ -895,13 +895,13 @@ func higherPrecisionEnabled(ctx context.Context) bool {
 	return ok && d
 }
 
-func arrowToRecord(record array.Record, rowType []execResponseRowType, loc *time.Location) (array.Record, error) {
+func arrowToRecord(record arrow.Record, rowType []execResponseRowType, loc *time.Location) (arrow.Record, error) {
 	s, err := recordToSchema(record.Schema(), rowType, loc)
 	if err != nil {
 		return nil, err
 	}
 
-	var cols []array.Interface
+	var cols []arrow.Array
 	numRows := record.NumRows()
 	pool := memory.NewGoAllocator()
 

@@ -22,8 +22,8 @@ import (
 	"math"
 	"sync/atomic"
 
-	"github.com/apache/arrow/go/arrow"
-	"github.com/apache/arrow/go/arrow/internal/debug"
+	"github.com/apache/arrow/go/v11/arrow"
+	"github.com/apache/arrow/go/v11/arrow/internal/debug"
 )
 
 // Table represents a logical sequence of chunked arrays.
@@ -99,7 +99,7 @@ func (col *Column) NewSlice(i, j int64) *Column {
 // Chunked manages a collection of primitives arrays as one logical large array.
 type Chunked struct {
 	refCount int64 // refCount must be first in the struct for 64 bit alignment and sync/atomic (https://github.com/golang/go/issues/37262)
-	
+
 	chunks []Interface
 
 	length int
