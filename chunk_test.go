@@ -175,7 +175,7 @@ type mockStreamChunkFetcher struct {
 	chunks map[string][][]*string
 }
 
-func (f *mockStreamChunkFetcher) fetch(url string, stream chan<- []*string) error {
+func (f *mockStreamChunkFetcher) fetch(ctx context.Context, url string, stream chan<- []*string) error {
 	for _, row := range f.chunks[url] {
 		stream <- row
 	}
@@ -435,7 +435,7 @@ func TestWithArrowBatches(t *testing.T) {
 			defer wg.Done()
 
 			for i := range chunks {
-				rec, err := batches[i].Fetch()
+				rec, err := batches[i].Fetch(ctx)
 				if err != nil {
 					t.Error(err)
 				}
@@ -512,7 +512,7 @@ func TestWithArrowBatchesAsync(t *testing.T) {
 			defer wg.Done()
 
 			for i := range chunks {
-				rec, err := batches[i].Fetch()
+				rec, err := batches[i].Fetch(ctx)
 				if err != nil {
 					t.Error(err)
 				}

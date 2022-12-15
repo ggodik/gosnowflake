@@ -533,7 +533,7 @@ func (scd *streamChunkDownloader) start() error {
 		// stop writing to the row stream so we can stop processing immediately
 		for i, chunk := range scd.ChunkMetas {
 			logger.WithContext(scd.ctx).Infof("starting chunk fetch %d (%d rows)", i, chunk.RowCount)
-			if err := scd.fetcher.fetch(chunk.URL, scd.rowStream); err != nil {
+			if err := scd.fetcher.fetch(scd.ctx, chunk.URL, scd.rowStream); err != nil {
 				logger.WithContext(scd.ctx).Debugf(
 					"failed chunk fetch %d: %#v, downloader id: %v, %v/%v rows, %v chunks",
 					i, err, scd.id, len(scd.RowSet.RowType), scd.Total, len(scd.ChunkMetas))
@@ -590,7 +590,7 @@ func useStreamDownloader(ctx context.Context) bool {
 }
 
 type streamChunkFetcher interface {
-	fetch(url string, rows chan<- []*string) error
+	fetch(ctx context.Context, url string, rows chan<- []*string) error
 }
 
 type httpStreamChunkFetcher struct {
@@ -620,7 +620,7 @@ func newStreamChunkDownloader(
 	}
 }
 
-func (f *httpStreamChunkFetcher) fetch(URL string, rows chan<- []*string) error {
+func (f *httpStreamChunkFetcher) fetch(ctx context.Context, URL string, rows chan<- []*string) error {
 	if len(f.headers) == 0 {
 		f.headers = map[string]string{
 			headerSseCAlgorithm: headerSseCAes,
@@ -632,7 +632,7 @@ func (f *httpStreamChunkFetcher) fetch(URL string, rows chan<- []*string) error 
 	if err != nil {
 		return err
 	}
-	res, err := newRetryHTTP(context.Background(), f.client, http.NewRequest, fullURL, f.headers, 0).execute()
+	res, err := newRetryHTTP(ctx, f.client, http.NewRequest, fullURL, f.headers, 0).execute()
 	if err != nil {
 		return err
 	}
@@ -706,14 +706,14 @@ type ArrowBatch struct {
 }
 
 // Fetch returns an array of records representing a chunk in the query
-func (rb *ArrowBatch) Fetch() (*[]arrow.Record, error) {
+func (rb *ArrowBatch) Fetch(ctx context.Context) (*[]arrow.Record, error) {
 	// chunk has already been downloaded
 	if rb.rec != nil {
 		// updating metadata
 		rb.rowCount = countArrowBatchRows(rb.rec)
 		return rb.rec, nil
 	}
-	if err := rb.funcDownloadHelper(context.Background(), rb.scd, rb.idx); err != nil {
+	if err := rb.funcDownloadHelper(ctx, rb.scd, rb.idx); err != nil {
 		return nil, err
 	}
 	return rb.rec, nil
